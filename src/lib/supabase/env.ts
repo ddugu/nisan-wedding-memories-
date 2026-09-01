@@ -37,8 +37,10 @@ export function logSupabaseError(context: string, error: unknown) {
   if (error && typeof error === "object") {
     const e = error as Record<string, unknown>;
     console.error(`[memories:${context}]`, {
-      code: e.code ?? null,
+      name: e.name ?? null,
+      code: e.code ?? e.error ?? null,
       message: e.message ?? null,
+      status: e.status ?? e.statusCode ?? null,
       details: e.details ?? null,
       hint: e.hint ?? null,
     });
@@ -46,4 +48,26 @@ export function logSupabaseError(context: string, error: unknown) {
   }
 
   console.error(`[memories:${context}]`, error);
+}
+
+export type MemoryPipelineStage =
+  | "validation"
+  | "storage-reserve"
+  | "storage-upload"
+  | "db-insert";
+
+export class MemoryPipelineError extends Error {
+  readonly stage: MemoryPipelineStage;
+  readonly details?: Record<string, unknown>;
+
+  constructor(
+    stage: MemoryPipelineStage,
+    message: string,
+    details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = "MemoryPipelineError";
+    this.stage = stage;
+    this.details = details;
+  }
 }

@@ -49,6 +49,58 @@ export function isAllowedMimeType(mime: string): mime is AllowedMimeType {
   return (ALLOWED_MIME_TYPES as readonly string[]).includes(mime);
 }
 
+/** Detect MIME from file header bytes (most reliable). */
+export function detectImageMimeFromBuffer(buffer: ArrayBuffer): AllowedMimeType | null {
+  const bytes = new Uint8Array(buffer.slice(0, 12));
+
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return "image/png";
+  }
+
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
+    const webpMarker = [0x57, 0x45, 0x42, 0x50];
+    if (webpMarker.every((byte, i) => bytes[8 + i] === byte)) {
+      return "image/webp";
+    }
+  }
+
+  return null;
+}
+
+function extensionToMime(ext: string): AllowedMimeType | null {
+  const map: Record<string, AllowedMimeType> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+  };
+  return map[ext.toLowerCase()] ?? null;
+}
+
+/**
+ * Resolve the true image MIME type for server-side uploads.
+ * Prefers magic bytes, then declared browser type, then file extension.
+ */
+export function resolveImageMimeType(
+  buffer: ArrayBuffer,
+  filename: string,
+  declaredType: string
+): AllowedMimeType | null {
+  const detected = detectImageMimeFromBuffer(buffer);
+  if (detected) return detected;
+
+  if (isAllowedMimeType(declaredType)) return declaredType;
+
+  const ext = filename.split(".").pop()?.toLowerCase();
+  if (ext) return extensionToMime(ext);
+
+  return null;
+}
+
 export const uploadFormSchema = z.object({
   guestName: z
     .string()

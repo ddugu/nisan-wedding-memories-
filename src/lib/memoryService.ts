@@ -2,24 +2,24 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { config, getMaxTotalStorageBytes } from "@/lib/config";
 import {
   validateFileSize,
-  validateFileExtension,
   validateMagicBytes,
-  isAllowedMimeType,
   createMemoryFormSchema,
+  resolveImageMimeType,
+  type AllowedMimeType,
 } from "@/lib/validation";
 import { hashIP } from "@/lib/hash";
 import { getPublicImageUrl } from "@/lib/storage";
-import { logSupabaseError } from "@/lib/supabase/env";
+import { logSupabaseError, MemoryPipelineError } from "@/lib/supabase/env";
 
 const PHOTOS_BUCKET = config.memoryPhotosBucket;
 
-function photoExtension(mimeType: string): string {
+function photoExtension(mimeType: AllowedMimeType): string {
   if (mimeType === "image/png") return "png";
   if (mimeType === "image/webp") return "webp";
   return "jpg";
 }
 
-function generatePhotoPath(memoryId: string, mimeType: string): string {
+function generatePhotoPath(memoryId: string, mimeType: AllowedMimeType): string {
   return `${memoryId}/${crypto.randomUUID()}.${photoExtension(mimeType)}`;
 }
 
@@ -34,25 +34,46 @@ export async function uploadMemoryPhotos(
 
   for (const file of files) {
     const sizeError = validateFileSize(file.size);
-    if (sizeError) throw new Error(sizeError);
-
-    if (!validateFileExtension(file.name) || !isAllowedMimeType(file.type)) {
-      throw new Error("INVALID_FILE");
+    if (sizeError) {
+      throw new MemoryPipelineError("validation", sizeError, {
+        fileName: file.name,
+        fileSize: file.size,
+      });
     }
 
     const buffer = await file.arrayBuffer();
-    if (!validateMagicBytes(buffer, file.type)) {
-      throw new Error("INVALID_FILE");
+    const mimeType = resolveImageMimeType(buffer, file.name, file.type);
+
+    if (!mimeType || !validateMagicBytes(buffer, mimeType)) {
+      console.error("[memories:photo-validation] rejected file", {
+        fileName: file.name,
+        declaredType: file.type || "(empty)",
+        resolvedType: mimeType,
+        fileSize: file.size,
+      });
+      throw new MemoryPipelineError("validation", "INVALID_FILE", {
+        fileName: file.name,
+        declaredType: file.type || "(empty)",
+        resolvedType: mimeType,
+      });
     }
 
-    const storagePath = generatePhotoPath(memoryId, file.type);
+    const storagePath = generatePhotoPath(memoryId, mimeType);
     const { error } = await supabase.storage
       .from(PHOTOS_BUCKET)
-      .upload(storagePath, buffer, { contentType: file.type, upsert: false });
+      .upload(storagePath, buffer, { contentType: mimeType, upsert: false });
 
     if (error) {
-      logSupabaseError("photo-upload", error);
-      throw new Error("UPLOAD_FAILED");
+      logSupabaseError("storage-upload", error);
+      throw new MemoryPipelineError("storage-upload", "UPLOAD_FAILED", {
+        bucket: PHOTOS_BUCKET,
+        storagePath,
+        contentType: mimeType,
+        supabase: {
+          name: error.name,
+          message: error.message,
+        },
+      });
     }
 
     paths.push(storagePath);
@@ -103,8 +124,14 @@ export async function createMemoryRecord(opts: {
     .single();
 
   if (error || !data) {
-    logSupabaseError("memory-insert", error);
-    throw new Error("UPLOAD_FAILED");
+    logSupabaseError("db-insert", error);
+    throw new MemoryPipelineError("db-insert", "UPLOAD_FAILED", {
+      memoryId: opts.memoryId,
+      photoCount: opts.photos.length,
+      supabase: error
+        ? { code: error.code, message: error.message, details: error.details, hint: error.hint }
+        : null,
+    });
   }
 
   return data;
@@ -123,7 +150,10 @@ export async function reserveStorageForPhotos(
 
   if (error) {
     logSupabaseError("storage-reserve", error);
-    throw new Error("UPLOAD_FAILED");
+    throw new MemoryPipelineError("storage-reserve", "UPLOAD_FAILED", {
+      totalSize,
+      supabase: { code: error.code, message: error.message, details: error.details },
+    });
   }
 
   return Boolean(data);

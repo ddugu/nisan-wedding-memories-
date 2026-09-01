@@ -13,7 +13,7 @@ import {
   reserveStorageForPhotos,
   uploadMemoryPhotos,
 } from "@/lib/memoryService";
-import { logMemoryApiEnvStatus, logSupabaseError } from "@/lib/supabase/env";
+import { logMemoryApiEnvStatus, logSupabaseError, MemoryPipelineError } from "@/lib/supabase/env";
 
 export const runtime = "nodejs";
 
@@ -159,9 +159,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, memory });
   } catch (error) {
     logMemoryApiEnvStatus("post-failed");
-    console.error("Create memory error:", error instanceof Error ? error.message : error);
-    if (error && typeof error === "object" && "code" in error) {
-      logSupabaseError("post-catch", error);
+
+    if (error instanceof MemoryPipelineError) {
+      console.error("[memories:post] pipeline failed", {
+        stage: error.stage,
+        message: error.message,
+        details: error.details ?? null,
+      });
+    } else {
+      console.error("Create memory error:", error instanceof Error ? error.message : error);
+      if (error && typeof error === "object" && "code" in error) {
+        logSupabaseError("post-catch", error);
+      }
     }
     if (supabase && uploadedPaths.length > 0) {
       await cleanupUploadedPhotos(supabase, uploadedPaths);
@@ -170,9 +179,12 @@ export async function POST(request: NextRequest) {
       await releaseStorage(reservedSize);
     }
 
-    const message = error instanceof Error && error.message === "INVALID_FILE"
-      ? INVALID_FILE
-      : USER_ERROR;
+    const message =
+      error instanceof MemoryPipelineError && error.message === "INVALID_FILE"
+        ? INVALID_FILE
+        : error instanceof Error && error.message === "INVALID_FILE"
+          ? INVALID_FILE
+          : USER_ERROR;
 
     return NextResponse.json({ error: message }, { status: 500 });
   }

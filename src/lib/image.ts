@@ -47,14 +47,21 @@ export async function compressImage(file: File): Promise<File> {
   }
 
   if (inputFile.size <= 500 * 1024) {
-    return inputFile;
+    const type = getOutputMimeType(inputFile);
+    if (inputFile.type === type) return inputFile;
+    return new File([inputFile], inputFile.name, { type, lastModified: Date.now() });
   }
 
   try {
     const compressed = await imageCompression(inputFile, COMPRESSION_OPTIONS);
-    return compressed;
+    const outputName = inputFile.name.replace(/\.(heic|heif|png|webp)$/i, ".jpg");
+    return new File([compressed], outputName, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
   } catch {
-    return inputFile;
+    const type = getOutputMimeType(inputFile);
+    return new File([inputFile], inputFile.name, { type, lastModified: Date.now() });
   }
 }
 
