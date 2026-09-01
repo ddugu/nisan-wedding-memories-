@@ -10,8 +10,6 @@ interface MemoryCardProps {
   memory: MemoryWithThumbnail;
   index: number;
   onClick?: (photoIndex: number) => void;
-  onDelete?: (memoryId: string) => void;
-  deleting?: boolean;
 }
 
 function formatDate(iso: string) {
@@ -22,7 +20,7 @@ function formatDate(iso: string) {
   return `${day}.${month}.${year}`;
 }
 
-export function MemoryCard({ memory, index, onClick, onDelete, deleting }: MemoryCardProps) {
+export function MemoryCard({ memory, index, onClick }: MemoryCardProps) {
   const rotate = ROTATIONS[index % ROTATIONS.length];
   const decor = DECOR[index % DECOR.length];
   const name = memory.guest_name?.trim() || "Misafir";
@@ -52,21 +50,6 @@ export function MemoryCard({ memory, index, onClick, onDelete, deleting }: Memor
         <svg className="gal-clip" viewBox="0 0 20 28" fill="none" aria-hidden="true">
           <path d="M6 3 C6 3 6 20 12 24 C18 28 16 12 16 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
-      )}
-
-      {onDelete && (
-        <button
-          type="button"
-          className="gal-card-delete font-hand"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(memory.id);
-          }}
-          disabled={deleting}
-          aria-label="Anıyı sil"
-        >
-          {deleting ? "…" : "sil"}
-        </button>
       )}
 
       {hasPhotos ? (

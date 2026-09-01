@@ -37,37 +37,14 @@ function getFlatPhotoIndex(memories: MemoryWithThumbnail[], memoryIndex: number,
 }
 
 export function Gallery() {
-  const { memories, loading, cursor, hasMore, loadingMore, total, fetchMemories, removeMemory } = useMemories({ limit: 24 });
+  const { memories, loading, cursor, hasMore, loadingMore, total, fetchMemories } = useMemories({ limit: 24 });
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const count = total > 0 ? total : memories.length;
   const lightboxItems = useMemo(() => buildLightboxItems(memories), [memories]);
 
   const openLightbox = (memoryIndex: number, photoIndex: number) => {
     setLightboxIndex(getFlatPhotoIndex(memories, memoryIndex, photoIndex));
-  };
-
-  const handleDelete = async (memoryId: string) => {
-    if (!window.confirm("Bu anıyı silmek istediğine emin misin?")) return;
-
-    setDeleteError(null);
-    setDeletingId(memoryId);
-
-    try {
-      const res = await fetch(`/api/memories/${memoryId}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Anı silinemedi.");
-      }
-      removeMemory(memoryId);
-      setLightboxIndex(null);
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Anı silinemedi. Lütfen tekrar deneyin. ♡");
-    } finally {
-      setDeletingId(null);
-    }
   };
 
   return (
@@ -112,12 +89,6 @@ export function Gallery() {
         </div>
 
         <div className="gal-composition">
-          {deleteError && (
-            <p className="gal-delete-error font-hand" role="alert">
-              {deleteError}
-            </p>
-          )}
-
           <div className="gal-note gal-note-tr font-hand" aria-hidden="true">
             <span className="gal-note-tape" />
             Birlikte
@@ -156,8 +127,6 @@ export function Gallery() {
                     memory={memory}
                     index={i}
                     onClick={(photoIndex) => openLightbox(i, photoIndex)}
-                    onDelete={handleDelete}
-                    deleting={deletingId === memory.id}
                   />
                 ))}
                 <CtaCard index={memories.length} />

@@ -356,40 +356,6 @@
   letter-spacing: 0.04em;
 }
 
-.gal-card-delete {
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  z-index: 3;
-  padding: 0.1rem 0.35rem;
-  border: 0;
-  background: transparent;
-  color: rgba(184, 102, 77, 0.45);
-  font-size: 0.68rem;
-  line-height: 1;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.2s ease;
-}
-
-.gal-card-delete:hover:not(:disabled) {
-  color: #b8664d;
-}
-
-.gal-card-delete:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-
-.gal-delete-error {
-  text-align: center;
-  margin: 0 auto 1rem;
-  max-width: 28rem;
-  font-size: 0.9rem;
-  color: rgba(184, 102, 77, 0.75);
-}
-
 /* ── CTA card ── */
 .gal-cta {
   cursor: default;

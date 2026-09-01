@@ -44,17 +44,17 @@ export function LandingArtwork() {
         <img
           src={ART_MOBILE}
           alt="Necati ve Tuğçe"
-          width={472}
-          height={1024}
+          width={853}
+          height={1844}
           fetchPriority="high"
           decoding="async"
         />
 
         <Link href="/anilar" className="hotspot hotspot-m-menu-anilar" aria-label="Anılar" />
-        <Link href="/ani" className="hotspot hotspot-m-menu-ani-birak" aria-label="Bir anı bırak" />
+        <Link href="/ani-birak" className="hotspot hotspot-m-menu-ani-birak" aria-label="Bir anı bırak" />
         <Link href="/galeri" className="hotspot hotspot-m-menu-galeri" aria-label="Galeri" />
         <Link href="/anilar" className="hotspot hotspot-m-menu-heart" aria-label="Anılar" />
-        <Link href="/ani" className="hotspot hotspot-m-ani-birak" aria-label="Bir anı bırak" />
+        <Link href="/ani-birak" className="hotspot hotspot-m-ani-birak" aria-label="Bir anı bırak" />
         <Link href="/anilar" className="hotspot hotspot-m-anilara-goz-at" aria-label="Anılara göz at" />
         <button
           type="button"
