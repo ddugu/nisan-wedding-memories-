@@ -9,6 +9,7 @@ import {
 } from "@/lib/validation";
 import { hashIP } from "@/lib/hash";
 import { getPublicImageUrl } from "@/lib/storage";
+import { logSupabaseError } from "@/lib/supabase/env";
 
 const PHOTOS_BUCKET = config.memoryPhotosBucket;
 
@@ -50,7 +51,7 @@ export async function uploadMemoryPhotos(
       .upload(storagePath, buffer, { contentType: file.type, upsert: false });
 
     if (error) {
-      console.error("Photo upload error:", error);
+      logSupabaseError("photo-upload", error);
       throw new Error("UPLOAD_FAILED");
     }
 
@@ -102,7 +103,7 @@ export async function createMemoryRecord(opts: {
     .single();
 
   if (error || !data) {
-    console.error("Memory insert error:", error);
+    logSupabaseError("memory-insert", error);
     throw new Error("UPLOAD_FAILED");
   }
 
@@ -121,7 +122,7 @@ export async function reserveStorageForPhotos(
   });
 
   if (error) {
-    console.error("Storage reserve error:", error);
+    logSupabaseError("storage-reserve", error);
     throw new Error("UPLOAD_FAILED");
   }
 

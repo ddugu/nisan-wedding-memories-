@@ -13,6 +13,7 @@ import {
   reserveStorageForPhotos,
   uploadMemoryPhotos,
 } from "@/lib/memoryService";
+import { logMemoryApiEnvStatus, logSupabaseError } from "@/lib/supabase/env";
 
 export const runtime = "nodejs";
 
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Memories fetch error:", error);
+      logSupabaseError("memories-fetch", error);
       return NextResponse.json({ memories: [], nextCursor: null, hasMore: false, total: 0 });
     }
 
@@ -86,14 +87,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const clientIP = getClientIP(request);
-  const ipHash = hashClientIP(clientIP);
   const memoryId = crypto.randomUUID();
   let uploadedPaths: string[] = [];
   let reservedSize = 0;
   let supabase: ReturnType<typeof createAdminClient> | null = null;
 
   try {
+    const clientIP = getClientIP(request);
+    const ipHash = hashClientIP(clientIP);
     const formData = await request.formData();
     const guestName = formData.get("guestName") as string | null;
     const message = formData.get("message") as string | null;
@@ -157,7 +158,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, memory });
   } catch (error) {
-    console.error("Create memory error:", error);
+    logMemoryApiEnvStatus("post-failed");
+    console.error("Create memory error:", error instanceof Error ? error.message : error);
+    if (error && typeof error === "object" && "code" in error) {
+      logSupabaseError("post-catch", error);
+    }
     if (supabase && uploadedPaths.length > 0) {
       await cleanupUploadedPhotos(supabase, uploadedPaths);
     }
