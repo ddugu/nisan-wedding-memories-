@@ -54,7 +54,9 @@ export type MemoryPipelineStage =
   | "validation"
   | "storage-reserve"
   | "storage-upload"
-  | "db-insert";
+  | "storage-delete"
+  | "db-insert"
+  | "db-delete";
 
 export class MemoryPipelineError extends Error {
   readonly stage: MemoryPipelineStage;

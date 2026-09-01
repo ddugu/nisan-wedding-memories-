@@ -73,5 +73,10 @@ export function useMemories({ limit = 12, autoFetch = true }: UseMemoriesOptions
     return () => { cancelled = true; };
   }, [limit, autoFetch]);
 
-  return { memories, loading, cursor, hasMore, loadingMore, total, fetchMemories };
+  const removeMemory = useCallback((memoryId: string) => {
+    setMemories((prev) => prev.filter((m) => m.id !== memoryId));
+    setTotal((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  return { memories, loading, cursor, hasMore, loadingMore, total, fetchMemories, removeMemory };
 }

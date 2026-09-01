@@ -165,6 +165,73 @@ export async function releaseStorage(totalSize: number) {
   await supabase.rpc("release_storage_space", { released_size: totalSize });
 }
 
+export async function deleteMemoryById(memoryId: string) {
+  const supabase = createAdminClient();
+
+  const { data: memory, error: fetchError } = await supabase
+    .from("memories")
+    .select("*")
+    .eq("id", memoryId)
+    .single();
+
+  if (fetchError || !memory) {
+    throw new MemoryPipelineError("db-delete", "NOT_FOUND", {
+      memoryId,
+      supabase: fetchError
+        ? { code: fetchError.code, message: fetchError.message }
+        : null,
+    });
+  }
+
+  const { data: memoryPhotos } = await supabase.storage
+    .from(PHOTOS_BUCKET)
+    .list(memoryId);
+
+  if (memoryPhotos?.length) {
+    const photoPaths = memoryPhotos.map((file) => `${memoryId}/${file.name}`);
+    const { error: photosError } = await supabase.storage
+      .from(PHOTOS_BUCKET)
+      .remove(photoPaths);
+    if (photosError) {
+      logSupabaseError("storage-delete-memory-photos", photosError);
+      throw new MemoryPipelineError("storage-delete", "DELETE_FAILED", {
+        memoryId,
+        bucket: PHOTOS_BUCKET,
+      });
+    }
+  }
+
+  if (memory.image_path) {
+    for (const bucket of [PHOTOS_BUCKET, config.storageBucket]) {
+      const { error } = await supabase.storage.from(bucket).remove([memory.image_path]);
+      if (!error) break;
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("memories")
+    .delete()
+    .eq("id", memoryId);
+
+  if (deleteError) {
+    logSupabaseError("db-delete", deleteError);
+    throw new MemoryPipelineError("db-delete", "DELETE_FAILED", {
+      memoryId,
+      supabase: {
+        code: deleteError.code,
+        message: deleteError.message,
+        details: deleteError.details,
+      },
+    });
+  }
+
+  if (memory.file_size > 0) {
+    await releaseStorage(memory.file_size);
+  }
+
+  return { success: true };
+}
+
 export function parseMemoryFormFields(guestName: string | null, message: string | null) {
   return createMemoryFormSchema.safeParse({
     guestName: guestName ?? "",

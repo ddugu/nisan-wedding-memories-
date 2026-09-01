@@ -1,7 +1,9 @@
-/* Landing — main.png full-width interactive canvas */
+/* Landing — desktop main.png + mobile main-mobile.jpg interactive canvases */
 
 .landing {
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   background: #f7f2ea;
 }
 
@@ -15,6 +17,30 @@
   display: block;
   width: 100%;
   height: auto;
+  max-width: 100%;
+}
+
+/* Desktop / mobile visibility — CSS only, no hydration mismatch */
+.landing-artwork--desktop {
+  display: block;
+}
+
+.landing-artwork--mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .landing {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .landing-artwork--desktop {
+    display: none;
+  }
+
+  .landing-artwork--mobile {
+    display: block;
+  }
 }
 
 /* Şeffaf tıklama alanları */
@@ -36,7 +62,7 @@
   outline: 1px solid red;
 }
 
-/* ── Desktop koordinatlar (%) ── */
+/* ── Desktop koordinatlar (%) — UNCHANGED ── */
 .hotspot-ani-birak {
   left: 7.2%;
   top: 77%;
@@ -79,55 +105,61 @@
   height: 5%;
 }
 
-/* ── Mobile: genişletilmiş touch target ── */
-@media (max-width: 768px) {
-  .hotspot-ani-birak {
-    left: 5%;
-    top: 75%;
-    width: 22%;
-    min-height: 44px;
-    height: 8%;
-  }
+/* ── Mobile koordinatlar (%) — main-mobile.jpg 472×1024 ── */
+.hotspot-m-menu-anilar {
+  left: 50%;
+  top: 2.2%;
+  width: 14%;
+  height: 4.8%;
+  min-height: 36px;
+}
 
-  .hotspot-anilara-goz-at {
-    left: 26%;
-    top: 75%;
-    width: 18%;
-    min-height: 44px;
-    height: 8%;
-  }
+.hotspot-m-menu-ani-birak {
+  left: 63%;
+  top: 2.2%;
+  width: 24%;
+  height: 4.8%;
+  min-height: 36px;
+}
 
-  .hotspot-menu-anilar {
-    left: 58%;
-    top: 1.5%;
-    width: 10%;
-    min-height: 44px;
-    height: 6%;
-  }
+.hotspot-m-menu-galeri {
+  left: 84%;
+  top: 2.2%;
+  width: 10%;
+  height: 4.8%;
+  min-height: 36px;
+}
 
-  .hotspot-menu-ani-birak {
-    left: 66%;
-    top: 1.5%;
-    width: 16%;
-    min-height: 44px;
-    height: 6%;
-  }
+.hotspot-m-menu-heart {
+  left: 91%;
+  top: 2.2%;
+  width: 7%;
+  height: 4.8%;
+  min-height: 36px;
+}
 
-  .hotspot-menu-galeri {
-    left: 80%;
-    top: 1.5%;
-    width: 12%;
-    min-height: 44px;
-    height: 6%;
-  }
+.hotspot-m-ani-birak {
+  left: 20%;
+  top: 47.5%;
+  width: 60%;
+  height: 5.5%;
+  min-height: 44px;
+}
 
-  .hotspot-scroll {
-    left: 42%;
-    top: 91%;
-    width: 16%;
-    min-height: 44px;
-    height: 6%;
-  }
+.hotspot-m-anilara-goz-at {
+  left: 30%;
+  top: 53.5%;
+  width: 40%;
+  height: 4%;
+  min-height: 36px;
+}
+
+.hotspot-m-scroll {
+  left: 40%;
+  top: 91.5%;
+  width: 20%;
+  height: 5%;
+  min-height: 40px;
 }
 
 #anilar-preview {
