@@ -1,0 +1,43 @@
+# Firebase App Hosting configuration
+# Docs: https://firebase.google.com/docs/app-hosting/configure
+#
+# Secret values are NOT stored here. Create them with:
+#   npx firebase-tools apphosting:secrets:set SECRET_NAME
+# Or set them in Firebase Console → App Hosting → Backend → Settings → Environment
+
+runConfig:
+  minInstances: 0
+  maxInstances: 10
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 1024
+
+env:
+  # Supabase — required for client + SSR (BUILD embeds NEXT_PUBLIC_* into the bundle)
+  - variable: NEXT_PUBLIC_SUPABASE_URL
+    secret: NEXT_PUBLIC_SUPABASE_URL
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SUPABASE_ANON_KEY
+    secret: NEXT_PUBLIC_SUPABASE_ANON_KEY
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Server-only — never exposed to the browser
+  - variable: SUPABASE_SERVICE_ROLE_KEY
+    secret: SUPABASE_SERVICE_ROLE_KEY
+    availability:
+      - RUNTIME
+
+  - variable: IP_HASH_SALT
+    secret: IP_HASH_SALT
+    availability:
+      - RUNTIME
+
+  - variable: ADMIN_EMAILS
+    secret: ADMIN_EMAILS
+    availability:
+      - RUNTIME

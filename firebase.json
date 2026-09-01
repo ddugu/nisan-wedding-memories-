@@ -1,0 +1,17 @@
+{
+  "apphosting": [
+    {
+      "backendId": "nisan",
+      "rootDir": ".",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        ".env",
+        ".env.*",
+        "!.env.example"
+      ]
+    }
+  ]
+}

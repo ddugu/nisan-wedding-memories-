@@ -1,0 +1,135 @@
+/* Landing — main.png full-width interactive canvas */
+
+.landing {
+  width: 100%;
+  background: #f7f2ea;
+}
+
+.landing-artwork {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+.landing-artwork img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Şeffaf tıklama alanları */
+.hotspot {
+  position: absolute;
+  z-index: 20;
+  background: transparent;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.landing-debug .hotspot {
+  background: rgba(255, 0, 0, 0.15);
+  outline: 1px solid red;
+}
+
+/* ── Desktop koordinatlar (%) ── */
+.hotspot-ani-birak {
+  left: 7.2%;
+  top: 77%;
+  width: 18.5%;
+  height: 6.8%;
+}
+
+.hotspot-anilara-goz-at {
+  left: 27.5%;
+  top: 77%;
+  width: 14%;
+  height: 6.8%;
+}
+
+.hotspot-menu-anilar {
+  left: 64%;
+  top: 2%;
+  width: 7%;
+  height: 5%;
+}
+
+.hotspot-menu-ani-birak {
+  left: 71%;
+  top: 2%;
+  width: 11%;
+  height: 5%;
+}
+
+.hotspot-menu-galeri {
+  left: 83%;
+  top: 2%;
+  width: 7%;
+  height: 5%;
+}
+
+.hotspot-scroll {
+  left: 46%;
+  top: 93%;
+  width: 10%;
+  height: 5%;
+}
+
+/* ── Mobile: genişletilmiş touch target ── */
+@media (max-width: 768px) {
+  .hotspot-ani-birak {
+    left: 5%;
+    top: 75%;
+    width: 22%;
+    min-height: 44px;
+    height: 8%;
+  }
+
+  .hotspot-anilara-goz-at {
+    left: 26%;
+    top: 75%;
+    width: 18%;
+    min-height: 44px;
+    height: 8%;
+  }
+
+  .hotspot-menu-anilar {
+    left: 58%;
+    top: 1.5%;
+    width: 10%;
+    min-height: 44px;
+    height: 6%;
+  }
+
+  .hotspot-menu-ani-birak {
+    left: 66%;
+    top: 1.5%;
+    width: 16%;
+    min-height: 44px;
+    height: 6%;
+  }
+
+  .hotspot-menu-galeri {
+    left: 80%;
+    top: 1.5%;
+    width: 12%;
+    min-height: 44px;
+    height: 6%;
+  }
+
+  .hotspot-scroll {
+    left: 42%;
+    top: 91%;
+    width: 16%;
+    min-height: 44px;
+    height: 6%;
+  }
+}
+
+#anilar-preview {
+  scroll-margin-top: 0;
+}
