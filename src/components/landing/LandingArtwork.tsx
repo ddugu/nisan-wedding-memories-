@@ -44,8 +44,8 @@ export function LandingArtwork() {
         <img
           src={ART_MOBILE}
           alt="Necati ve Tuğçe"
-          width={853}
-          height={1844}
+          width={852}
+          height={1847}
           fetchPriority="high"
           decoding="async"
         />

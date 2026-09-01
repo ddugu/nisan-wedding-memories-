@@ -31,6 +31,7 @@
 
 @media (max-width: 768px) {
   .landing {
+    padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
@@ -112,7 +113,7 @@
   height: 5%;
 }
 
-/* ── Mobile koordinatlar (%) — 472×1024 artboard referansı ── */
+/* ── Mobile koordinatlar (%) — 852×1847 artwork referansı ── */
 .hotspot-m-menu-anilar {
   left: 32.5%;
   top: 3.1%;
