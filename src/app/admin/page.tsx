@@ -217,7 +217,11 @@ export default function AdminDashboard() {
                       disabled={photos.length === 0 || downloading === memory.id}
                       className="text-xs text-warm-brown py-1.5 border border-terracotta/20 rounded-lg hover:bg-soft-pink/20 transition-colors disabled:opacity-50"
                     >
-                      {downloading === memory.id ? "İndiriliyor..." : "İndir"}
+                      {downloading === memory.id
+                        ? "İndiriliyor..."
+                        : photos.length > 1
+                          ? `İndir (${photos.length})`
+                          : "İndir"}
                     </button>
                     <button
                       type="button"
