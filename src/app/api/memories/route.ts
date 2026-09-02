@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeMemory } from "@/lib/memory-normalize";
 import type { MemoryWithThumbnail } from "@/lib/types";
 import { getClientIP } from "@/lib/rate-limit";
+import { checkUploadLimits, UPLOAD_LIMIT_MESSAGES } from "@/lib/upload-limits";
 import {
   cleanupUploadedPhotos,
   createMemoryRecord,
@@ -119,6 +120,19 @@ export async function POST(request: NextRequest) {
     }
 
     supabase = createAdminClient();
+
+    try {
+      const limitCheck = await checkUploadLimits(supabase, ipHash, files.length);
+      if (!limitCheck.ok) {
+        return NextResponse.json(
+          { error: UPLOAD_LIMIT_MESSAGES[limitCheck.code] },
+          { status: limitCheck.code === "RATE_LIMIT" ? 429 : 403 }
+        );
+      }
+    } catch (limitError) {
+      console.error("Upload limit check error:", limitError);
+      return NextResponse.json({ error: USER_ERROR }, { status: 500 });
+    }
 
     if (files.length > 0) {
       reservedSize = files.reduce((sum, f) => sum + f.size, 0);

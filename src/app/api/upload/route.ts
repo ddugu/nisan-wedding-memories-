@@ -9,6 +9,7 @@ import {
   isAllowedMimeType,
 } from "@/lib/validation";
 import { getClientIP } from "@/lib/rate-limit";
+import { checkUploadLimits, UPLOAD_LIMIT_MESSAGES } from "@/lib/upload-limits";
 import { hashIP } from "@/lib/hash";
 import { generateStoragePath, getPublicImageUrl } from "@/lib/storage";
 
@@ -23,8 +24,6 @@ const ERROR_MESSAGES: Record<string, string> = {
   UPLOAD_FAILED: "Yükleme sırasında bir sorun oluştu. Lütfen tekrar deneyin.",
   NO_FILE: "Lütfen bir fotoğraf seçin.",
 };
-
-const HOUR_MS = 60 * 60 * 1000;
 
 async function cleanupFailedUpload(
   supabase: ReturnType<typeof createAdminClient>,
@@ -107,46 +106,14 @@ export async function POST(request: NextRequest) {
 
     supabase = createAdminClient();
 
-    const oneHourAgo = new Date(Date.now() - HOUR_MS).toISOString();
-    const { count: recentUploads, error: rateError } = await supabase
-      .from("memories")
-      .select("*", { count: "exact", head: true })
-      .eq("uploader_ip_hash", ipHash)
-      .gte("created_at", oneHourAgo)
-      .neq("status", "deleted");
-
-    if (rateError) {
-      console.error("Rate limit check error:", rateError);
+    const limitCheck = await checkUploadLimits(supabase, ipHash, 1);
+    if (!limitCheck.ok) {
       return NextResponse.json(
-        { error: ERROR_MESSAGES.UPLOAD_FAILED, errorCode: "UPLOAD_FAILED" },
-        { status: 500 }
-      );
-    }
-
-    if ((recentUploads ?? 0) >= config.rateLimitUploadsPerHour) {
-      return NextResponse.json(
-        { error: ERROR_MESSAGES.RATE_LIMIT, errorCode: "RATE_LIMIT" },
-        { status: 429 }
-      );
-    }
-
-    const { data: guestCount, error: countError } = await supabase.rpc(
-      "count_photos_by_uploader",
-      { ip_hash: ipHash }
-    );
-
-    if (countError) {
-      console.error("Guest count error:", countError);
-      return NextResponse.json(
-        { error: ERROR_MESSAGES.UPLOAD_FAILED, errorCode: "UPLOAD_FAILED" },
-        { status: 500 }
-      );
-    }
-
-    if (guestCount >= config.maxPhotosPerGuest) {
-      return NextResponse.json(
-        { error: ERROR_MESSAGES.GUEST_LIMIT, errorCode: "GUEST_LIMIT" },
-        { status: 403 }
+        {
+          error: UPLOAD_LIMIT_MESSAGES[limitCheck.code],
+          errorCode: limitCheck.code,
+        },
+        { status: limitCheck.code === "RATE_LIMIT" ? 429 : 403 }
       );
     }
 

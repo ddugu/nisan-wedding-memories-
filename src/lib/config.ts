@@ -10,9 +10,9 @@ function parsePositiveFloat(value: string | undefined, fallback: number): number
 
 export const config = {
   maxFileSizeMB: parsePositiveInt(process.env.MAX_FILE_SIZE_MB, 10),
-  maxTotalStorageGB: parsePositiveFloat(process.env.MAX_TOTAL_STORAGE_GB, 10),
-  maxPhotosPerGuest: parsePositiveInt(process.env.MAX_PHOTOS_PER_GUEST, 20),
-  rateLimitUploadsPerHour: parsePositiveInt(process.env.RATE_LIMIT_UPLOADS_PER_HOUR, 10),
+  maxTotalStorageGB: parsePositiveFloat(process.env.MAX_TOTAL_STORAGE_GB, 0.9),
+  maxPhotosPerGuest: parsePositiveInt(process.env.MAX_PHOTOS_PER_GUEST, 15),
+  rateLimitUploadsPerHour: parsePositiveInt(process.env.RATE_LIMIT_UPLOADS_PER_HOUR, 5),
   weddingDate: process.env.NEXT_PUBLIC_WEDDING_DATE ?? "2026-09-02",
   storageBucket: "wedding-memories",
   memoryPhotosBucket: "memory-photos",
