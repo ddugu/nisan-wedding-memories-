@@ -23,7 +23,7 @@ export function getMaxFileSizeBytes(): number {
 }
 
 export function getMaxTotalStorageBytes(): number {
-  return config.maxTotalStorageGB * 1024 * 1024 * 1024;
+  return Math.floor(config.maxTotalStorageGB * 1024 * 1024 * 1024);
 }
 
 export function formatBytes(bytes: number): string {
