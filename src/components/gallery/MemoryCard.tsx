@@ -53,37 +53,21 @@ export function MemoryCard({ memory, index, onClick }: MemoryCardProps) {
       )}
 
       {hasPhotos ? (
-        <>
-          <div className="gal-card-photo">
-            <Image
-              src={photos[0]}
-              alt={`${name} anısı`}
-              fill
-              className="gal-card-img"
-              sizes="(max-width:640px) 90vw, 240px"
-              loading="lazy"
-            />
-          </div>
+        <div className="gal-card-photo">
+          <Image
+            src={photos[0]}
+            alt={`${name} anısı`}
+            fill
+            className="gal-card-img"
+            sizes="(max-width:640px) 90vw, 240px"
+            loading="lazy"
+          />
           {photos.length > 1 && (
-            <ul className="gal-card-thumbs" aria-label="Diğer fotoğraflar">
-              {photos.slice(1).map((url, i) => (
-                <li key={url}>
-                  <button
-                    type="button"
-                    className="gal-card-thumb"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClick?.(i + 1);
-                    }}
-                    aria-label={`Fotoğraf ${i + 2}`}
-                  >
-                    <Image src={url} alt="" fill className="object-cover" sizes="40px" loading="lazy" />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <span className="gal-card-photo-badge" aria-label={`${photos.length} fotoğraf`}>
+              +{photos.length - 1}
+            </span>
           )}
-        </>
+        </div>
       ) : (
         <div className="gal-card-no-photo" aria-hidden="true">
           <span className="gal-card-no-photo-heart">♡</span>

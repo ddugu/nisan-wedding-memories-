@@ -14,7 +14,11 @@ export function PhotoGallery() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const photos = useMemo(() => flattenMemoriesToGalleryPhotos(memories), [memories]);
-  const count = photos.length;
+  const visibleMemories = useMemo(
+    () => memories.filter((memory) => memory.photos.length > 0 || memory.image_url),
+    [memories]
+  );
+  const photoCount = photos.length;
 
   const lightboxItems = useMemo(
     () =>
@@ -26,6 +30,13 @@ export function PhotoGallery() {
       })),
     [photos]
   );
+
+  const openMemoryLightbox = (memoryIndex: number) => {
+    const memory = visibleMemories[memoryIndex];
+    if (!memory) return;
+    const flatIndex = photos.findIndex((p) => p.memory_id === memory.id);
+    if (flatIndex >= 0) setLightboxIndex(flatIndex);
+  };
 
   return (
     <div className="gal-page">
@@ -53,7 +64,7 @@ export function PhotoGallery() {
           <div className="gal-counter">
             <span className="gal-counter-heart">♡</span>
             <span>
-              Toplam <strong className="gal-counter-num">{count}</strong> fotoğraf
+              Toplam <strong className="gal-counter-num">{photoCount}</strong> fotoğraf
             </span>
           </div>
           <svg className="gal-counter-leaf gal-counter-leaf-r" viewBox="0 0 24 16" fill="none" aria-hidden="true">
@@ -66,7 +77,7 @@ export function PhotoGallery() {
             <div className="gal-loading">
               <p className="gal-loading-text font-hand">Anılar hazırlanıyor... ♡</p>
             </div>
-          ) : photos.length === 0 ? (
+          ) : visibleMemories.length === 0 ? (
             <div className="gal-empty-state">
               <p className="gal-empty-title display-serif">Henüz bir fotoğraf yok</p>
               <p className="gal-empty-sub font-hand">İlk anıyı sen bırak ♡</p>
@@ -77,12 +88,12 @@ export function PhotoGallery() {
           ) : (
             <>
               <div className="gal-grid">
-                {photos.map((photo, i) => (
+                {visibleMemories.map((memory, i) => (
                   <PhotoCard
-                    key={photo.id}
-                    photo={photo}
+                    key={memory.id}
+                    memory={memory}
                     index={i}
-                    onClick={() => setLightboxIndex(i)}
+                    onClick={() => openMemoryLightbox(i)}
                   />
                 ))}
               </div>

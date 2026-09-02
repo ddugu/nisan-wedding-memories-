@@ -321,6 +321,21 @@
   background: rgba(61, 43, 37, 0.04);
 }
 
+.gal-card-photo-badge {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  z-index: 2;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(36, 28, 26, 0.62);
+  color: #fbf8f2;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
 .gal-card-img {
   object-fit: cover;
   transition: transform 0.4s ease;

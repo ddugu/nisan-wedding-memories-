@@ -1,21 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import type { GalleryPhotoItem } from "@/lib/memory-normalize";
+import type { MemoryWithThumbnail } from "@/lib/types";
 
 const ROTATIONS = ["-1.2deg", "0.8deg", "-2deg", "1.4deg", "-0.6deg", "1.8deg", "-1deg", "2deg"];
 const DECOR = ["tape", "clip", "none", "tape", "clip", "tape", "none", "clip"] as const;
 
 interface PhotoCardProps {
-  photo: GalleryPhotoItem;
+  memory: MemoryWithThumbnail;
   index: number;
   onClick?: () => void;
 }
 
-export function PhotoCard({ photo, index, onClick }: PhotoCardProps) {
+export function PhotoCard({ memory, index, onClick }: PhotoCardProps) {
   const rotate = ROTATIONS[index % ROTATIONS.length];
   const decor = DECOR[index % DECOR.length];
-  const name = photo.guest_name?.trim() || "Misafir";
+  const name = memory.guest_name?.trim() || "Misafir";
+  const photos =
+    memory.photos.length > 0
+      ? memory.photos
+      : memory.image_url
+        ? [memory.image_url]
+        : [];
+
+  if (photos.length === 0) return null;
 
   return (
     <article
@@ -35,13 +43,18 @@ export function PhotoCard({ photo, index, onClick }: PhotoCardProps) {
 
       <div className="gal-card-photo">
         <Image
-          src={photo.url}
+          src={photos[0]}
           alt={`${name} fotoğrafı`}
           fill
           className="gal-card-img"
           sizes="(max-width:640px) 90vw, 240px"
           loading="lazy"
         />
+        {photos.length > 1 && (
+          <span className="gal-card-photo-badge" aria-label={`${photos.length} fotoğraf`}>
+            +{photos.length - 1}
+          </span>
+        )}
       </div>
 
       <p className="gal-photo-from font-hand">

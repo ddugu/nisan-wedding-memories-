@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/Button";
+import { getMemoryPhotoUrls } from "@/lib/memory-normalize";
+import { downloadMemoryPhotos } from "@/lib/download-photos";
 import type { Memory } from "@/lib/types";
 
 interface AdminStats {
@@ -22,6 +24,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,14 +62,33 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDownload = async (memory: Memory) => {
+    const photos = getMemoryPhotoUrls(memory);
+    if (photos.length === 0) {
+      alert("Bu anıda indirilecek fotoğraf yok.");
+      return;
+    }
+
+    setDownloading(memory.id);
+    try {
+      await downloadMemoryPhotos(photos, memory.guest_name);
+    } catch {
+      alert("İndirme başarısız oldu. Tekrar deneyin.");
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm("Bu anıyı silmek istediğinize emin misiniz?")) return;
+    if (!confirm("Bu anıyı silmek istediğinize emin misiniz? Fotoğraflar kalıcı olarak silinir.")) return;
 
     setDeleting(id);
     try {
       const res = await fetch(`/api/admin/memories/${id}`, { method: "DELETE" });
       if (res.ok) {
         await refreshData();
+      } else {
+        alert("Silme işlemi başarısız oldu.");
       }
     } catch {
       alert("Silme işlemi başarısız oldu.");
@@ -147,42 +169,69 @@ export default function AdminDashboard() {
           Henüz anı yok.
         </p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {memories.map((memory) => (
-            <div key={memory.id} className="paper-card overflow-hidden">
-              <div className="relative aspect-square">
-                <Image
-                  src={memory.image_url || ""}
-                  alt={memory.guest_name ?? "Anı"}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                />
-              </div>
-              <div className="p-3">
-                {memory.guest_name && (
-                  <p className="font-display text-lg text-terracotta truncate">
-                    {memory.guest_name}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {memories.map((memory) => {
+            const photos = getMemoryPhotoUrls(memory);
+            const cover = photos[0] ?? "";
+
+            return (
+              <div key={memory.id} className="paper-card overflow-hidden">
+                <div className="relative aspect-square bg-off-white">
+                  {cover ? (
+                    <Image
+                      src={cover}
+                      alt={memory.guest_name ?? "Anı"}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-terracotta/30 text-3xl">
+                      ♡
+                    </div>
+                  )}
+                  {photos.length > 1 && (
+                    <span className="absolute top-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-xs text-white">
+                      {photos.length} foto
+                    </span>
+                  )}
+                </div>
+                <div className="p-3">
+                  {memory.guest_name && (
+                    <p className="font-display text-lg text-terracotta truncate">
+                      {memory.guest_name}
+                    </p>
+                  )}
+                  {memory.message && (
+                    <p className="font-body text-xs text-warm-brown/60 line-clamp-2 mt-0.5">
+                      {memory.message}
+                    </p>
+                  )}
+                  <p className="font-body text-[10px] text-warm-brown/40 mt-1">
+                    {new Date(memory.created_at).toLocaleString("tr-TR")}
                   </p>
-                )}
-                {memory.message && (
-                  <p className="font-body text-xs text-warm-brown/60 line-clamp-2 mt-0.5">
-                    {memory.message}
-                  </p>
-                )}
-                <p className="font-body text-[10px] text-warm-brown/40 mt-1">
-                  {new Date(memory.created_at).toLocaleString("tr-TR")}
-                </p>
-                <button
-                  onClick={() => handleDelete(memory.id)}
-                  disabled={deleting === memory.id}
-                  className="mt-2 w-full text-xs text-terracotta/70 hover:text-terracotta py-1.5 border border-terracotta/20 rounded-lg hover:bg-soft-pink/20 transition-colors disabled:opacity-50"
-                >
-                  {deleting === memory.id ? "Siliniyor..." : "Sil"}
-                </button>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDownload(memory)}
+                      disabled={photos.length === 0 || downloading === memory.id}
+                      className="text-xs text-warm-brown py-1.5 border border-terracotta/20 rounded-lg hover:bg-soft-pink/20 transition-colors disabled:opacity-50"
+                    >
+                      {downloading === memory.id ? "İndiriliyor..." : "İndir"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(memory.id)}
+                      disabled={deleting === memory.id}
+                      className="text-xs text-terracotta/70 hover:text-terracotta py-1.5 border border-terracotta/20 rounded-lg hover:bg-soft-pink/20 transition-colors disabled:opacity-50"
+                    >
+                      {deleting === memory.id ? "Siliniyor..." : "Sil"}
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </main>
