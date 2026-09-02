@@ -71,7 +71,11 @@ export default function AdminDashboard() {
 
     setDownloading(memory.id);
     try {
-      await downloadMemoryPhotos(photos, memory.guest_name);
+      await downloadMemoryPhotos(photos, {
+        guestName: memory.guest_name,
+        message: memory.message,
+        createdAt: memory.created_at,
+      });
     } catch {
       alert("İndirme başarısız oldu. Tekrar deneyin.");
     } finally {
